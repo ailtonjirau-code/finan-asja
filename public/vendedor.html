@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Licenças</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100">
+
+  <!-- TELA DE LOGIN -->
+  <div id="login" class="h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
+      <h1 class="text-3xl font-bold mb-2 text-center">Painel de Parceiros</h1>
+      <p class="text-gray-400 text-sm mb-8 text-center">Gerencie suas licenças</p>
+      <input id="email" type="email" placeholder="Email" class="w-full bg-gray-700 border border-gray-600 p-3 rounded-lg mb-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <input id="senha" type="password" placeholder="Senha" class="w-full bg-gray-700 border border-gray-600 p-3 rounded-lg mb-6 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <button onclick="login()" id="btnLogin" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-600">Entrar</button>
+      <p id="loginErro" class="text-red-400 text-sm mt-4 text-center hidden"></p>
+    </div>
+  </div>
+
+  <!-- PAINEL PRINCIPAL -->
+  <div id="painel" class="hidden min-h-screen">
+    <nav class="bg-gray-800 border-b border-gray-700 p-4">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <h1 class="text-xl font-bold">Painel de Licenças</h1>
+        <div class="flex items-center gap-4">
+          <span id="userEmail" class="text-gray-400 text-sm"></span>
+          <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6">
+      <!-- CARD DE CRIAR LICENÇA -->
+      <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 mb-8">
+        <h2 class="text-2xl font-bold mb-4">Gerar Nova Licença</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input id="novoCliente" placeholder="Nome do Cliente" class="bg-gray-700 border border-gray-600 p-3 rounded-lg text-white">
+          <input id="novaData" type="date" class="bg-gray-700 border border-gray-600 p-3 rounded-lg text-white">
+          
+          <!-- Só admin master vê esse campo pra definir dono -->
+          <input id="novoDono" placeholder="Email do Parceiro" class="bg-gray-700 border border-gray-600 p-3 rounded-lg text-white hidden">
+          
+          <button onclick="criarLicenca()" id="btnCriar" class="bg-green-600 hover:bg-green-700 p-3 rounded-lg font-semibold">
+            <i class="fas fa-plus"></i> Gerar Chave
+          </button>
+        </div>
+        <p id="msgCriar" class="text-sm mt-3 hidden"></p>
+      </div>
+
+      <!-- TABELA DE LICENÇAS -->
+      <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+        <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+          <h2 class="text-xl font-bold">Suas Licenças</h2>
+          <span id="totalLicencas" class="text-gray-400 text-sm"></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-900/50">
+              <tr>
+                <th class="p-4 text-left text-sm">Chave</th>
+                <th class="p-4 text-left text-sm">Cliente</th>
+                <th class="p-4 text-left text-sm">Expira em</th>
+                <th class="p-4 text-left text-sm">Ativações</th>
+                <th class="p-4 text-left text-sm">Status</th>
+                <th class="p-4 text-left text-sm">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaLicencas"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL COPIAR CHAVE -->
+  <div id="modalChave" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div class="bg-gray-800 p-8 rounded-xl border border-gray-700 max-w-md w-full mx-4">
+      <h3 class="text-2xl font-bold mb-4">Licença Criada!</h3>
+      <p class="text-gray-400 mb-4">Envie esta chave para seu cliente:</p>
+      <div class="bg-gray-900 p-4 rounded-lg mb-4 flex items-center justify-between">
+        <span id="chaveGerada" class="font-mono text-lg text-green-400"></span>
+        <button onclick="copiarChave()" class="text-blue-400 hover:text-blue-300">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+      <button onclick="fecharModal()" class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg">Fechar</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, doc, updateDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // COLA SEU firebaseConfig AQUI 👇
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_PROJECT.firebaseapp.com",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_PROJECT.appspot.com",
+      messagingSenderId: "SEU_ID",
+      appId: "SEU_APP_ID"
+    };
+
+    // COLOCA SEU EMAIL DE ADMIN MASTER AQUI
+    const ADMIN_MASTER = "seuemail@gmail.com";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let usuarioAtual = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        usuarioAtual = user;
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('painel').classList.remove('hidden');
+        document.getElementById('userEmail').innerText = user.email;
+        
+        // Se for admin master, mostra campo de dono
+        if (user.email === ADMIN_MASTER) {
+          document.getElementById('novoDono').classList.remove('hidden');
+          document.getElementById('novoDono').value = user.email;
+        } else {
+          document.getElementById('novoDono').classList.add('hidden');
+        }
+        
+        carregarLicencas();
+      } else {
+        document.getElementById('login').classList.remove('hidden');
+        document.getElementById('painel').classList.add('hidden');
+      }
+    });
+
+    window.login = async () => {
+      const btn = document.getElementById('btnLogin');
+      const erro = document.getElementById('loginErro');
+      btn.disabled = true;
+      btn.innerText = "Entrando...";
+      erro.classList.add('hidden');
+
+      try {
+        await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('senha').value);
+      } catch (e) {
+        erro.innerText = "Email ou senha inválidos";
+        erro.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerText = "Entrar";
+      }
+    }
+
+    window.logout = () => signOut(auth);
+
+    async function carregarLicencas() {
+      const tbody = document.getElementById('listaLicencas');
+      tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500">Carregando...</td></tr>';
+      
+      let q;
+      if (usuarioAtual.email === ADMIN_MASTER) {
+        q = query(collection(db, "licencas")); // Admin vê tudo
+      } else {
+        q = query(collection(db, "licencas"), where("dono", "==", usuarioAtual.email)); // Parceiro vê só dele
+      }
+
+      const snapshot = await getDocs(q);
+      tbody.innerHTML = '';
+      let total = 0;
+
+      snapshot.forEach((doc) => {
+        total++;
+        const d = doc.data();
+        const hoje = new Date();
+        const expira = new Date(d.dataExpiracao + 'T23:59:59');
+        
+        let status, statusCor;
+        if (d.bloqueada) {
+          status = 'Bloqueada'; statusCor = 'text-red-400 bg-red-900/30';
+        } else if (!d.ativa) {
+          status = 'Desativada'; statusCor = 'text-gray-400 bg-gray-700';
+        } else if (expira < hoje) {
+          status = 'Expirada'; statusCor = 'text-orange-400 bg-orange-900/30';
+        } else {
+          status = 'Ativa'; statusCor = 'text-green-400 bg-green-900/30';
+        }
+
+        tbody.innerHTML += `
+          <tr class="border-t border-gray-700 hover:bg-gray-700/30">
+            <td class="p-4 font-mono text-sm">${doc.id}</td>
+            <td class="p-4">${d.cliente}</td>
+            <td class="p-4">${new Date(d.dataExpiracao).toLocaleDateString('pt-BR')}</td>
+            <td class="p-4">${d.totalAtivacoes || 0}</td>
+            <td class="p-4"><span class="px-3 py-1 rounded-full text-xs ${statusCor}">${status}</span></td>
+            <td class="p-4">
+              <button onclick="toggleBloqueio('${doc.id}', ${d.bloqueada})" class="text-sm ${d.bloqueada ? 'text-green-400 hover:text-green-300' : 'text-red-400 hover:text-red-300'}">
+                <i class="fas ${d.bloqueada ? 'fa-unlock' : 'fa-lock'}"></i> ${d.bloqueada ? 'Desbloquear' : 'Bloquear'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('totalLicencas').innerText = `${total} licenças`;
+      if (total === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500">Nenhuma licença encontrada</td></tr>';
+      }
+    }
+
+    window.toggleBloqueio = async (id, bloqueada) => {
+      await updateDoc(doc(db, "licencas", id), { bloqueada: !bloqueada });
+      carregarLicencas();
+    }
+
+    window.criarLicenca = async () => {
+      const btn = document.getElementById('btnCriar');
+      const msg = document.getElementById('msgCriar');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+
+      const cliente = document.getElementById('novoCliente').value.trim();
+      const data = document.getElementById('novaData').value;
+      let dono = usuarioAtual.email;
+
+      // Se for admin master, pega o dono do input
+      if (usuarioAtual.email === ADMIN_MASTER) {
+        dono = document.getElementById('novoDono').value.trim() || usuarioAtual.email;
+      }
+
+      if (!cliente || !data) {
+        msg.className = 'text-red-400 text-sm mt-3';
+        msg.innerText = 'Preencha nome do cliente e data de expiração';
+        msg.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus"></i> Gerar Chave';
+        return;
+      }
+
+      try {
+        // Gera chave: 16 caracteres A-Z 0-9
+        const chave = Array.from({length: 16}, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[Math.floor(Math.random() * 36)]).join('');
+        
+        await setDoc(doc(db, "licencas", chave), {
+          cliente: cliente,
+          dono: dono,
+          dataExpiracao: data,
+          ativa: true,
+          bloqueada: false,
+          dataCriacao: serverTimestamp(),
+          totalAtivacoes: 0
+        });
+
+        document.getElementById('novoCliente').value = '';
+        document.getElementById('novaData').value = '';
+        msg.classList.add('hidden');
+        
+        // Mostra modal com a chave
+        document.getElementById('chaveGerada').innerText = chave.match(/.{1,4}/g).join('-');
+        document.getElementById('modalChave').classList.remove('hidden');
+        
+        carregarLicencas();
+
+      } catch (e) {
+        msg.className = 'text-red-400 text-sm mt-3';
+        msg.innerText = 'Erro ao criar licença';
+        msg.classList.remove('hidden');
+        console.error(e);
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-plus"></i> Gerar Chave';
+    }
+
+    window.copiarChave = () => {
+      navigator.clipboard.writeText(document.getElementById('chaveGerada').innerText);
+      alert('Chave copiada!');
+    }
+
+    window.fecharModal = () => {
+      document.getElementById('modalChave').classList.add('hidden');
+    }
+
+    // Enter pra logar
+    document.getElementById('senha').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') login();
+    });
+  </script>
+</body>
+</html>1

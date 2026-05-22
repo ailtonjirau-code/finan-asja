@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinançasJá - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #e5e5e5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+  .login-wrapper { width: 100%; max-width: 420px; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .login-card { background: #171717; border: 1px solid #262626; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .login-header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 32px 24px; text-align: center; }
+  .login-logo { width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 16px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; font-size: 36px; border: 2px solid rgba(255,255,255,0.2); }
+  .login-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .login-header p { font-size: 14px; opacity: 0.9; }
+  .login-body { padding: 32px 24px; }
+  .input-group { margin-bottom: 16px; }
+  .input-group label { display: block; font-size: 13px; color: #a3a3a3; margin-bottom: 6px; font-weight: 500; }
+        input, select { width: 100%; padding: 12px 14px; background: #262626; border: 1px solid #404040; border-radius: 8px; color: #e5e5e5; font-size: 15px; transition: all 0.2s; margin-bottom: 12px; }
+        input:focus, select:focus { outline: none; border-color: #3b82f6; background: #1f1f1f; }
+        button { width: 100%; background: #3b82f6; color: white; border: none; padding: 13px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.2s; margin-top: 8px; }
+        button:hover { background: #2563eb; transform: translateY(-1px); }
+  .erro { color: #f87171; text-align: center; margin-top: 16px; font-size: 14px; min-height: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .card { background: #171717; padding: 24px; border-radius: 12px; margin-bottom: 24px; border: 1px solid #262626; }
+  .hidden { display: none; }
+  .flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+        button.ghost { background: #262626; width: auto; padding: 10px 16px; }
+        button.danger { background: #dc2626; }
+        button.success { background: #16a34a; }
+  .item { background:#262626; padding:16px; border-radius:6px; margin-bottom:12px; }
+  .item-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:12px; }
+  .tag { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #16a34a; }
+  .tag.inativa { background: #dc2626; }
+  .tag.vendedor { background: #7c3aed; }
+  .tag.final { background: #0ea5e9; }
+  .tag.revenda { background: #f59e0b; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background:#262626; padding:16px; border-radius:6px; text-align:center; cursor:pointer; transition:all 0.2s; }
+  .stat-card:hover { background:#333; }
+  .stat-card strong { display:block; font-size:24px; margin-top:4px; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid #404040; flex-wrap: wrap; }
+  .tab { padding:8px 16px; cursor:pointer; color:#737373; }
+  .tab.active { color:#e5e5e5; border-bottom:2px solid #3b82f6; }
+  .main-tabs { display:flex; gap:8px; margin-bottom:24px; }
+  .main-tab { padding:12px 20px; cursor:pointer; background:#262626; border-radius:8px; color:#737373; font-weight:600; }
+  .main-tab.active { background:#3b82f6; color:white; }
+        h1 { font-size: 28px; margin-bottom: 8px; }
+        h2 { font-size: 20px; margin-bottom: 16px; }
+  .success-msg { color:#4ade80; margin-top:12px; font-size:14px; line-height:1.6; }
+        @media(max-width: 768px){
+            body { padding: 0; align-items: flex-start; }
+      .login-wrapper { max-width: 100%; }
+      .login-card { border-radius: 0; min-height: 100vh; }
+      .stats { grid-template-columns: 1fr; }
+      .item-header { flex-direction:column; align-items:flex-start; }
+      .container { padding: 12px; }
+      .main-tabs { flex-direction:column; }
+        }
+    </style>
+</head>
+<body>
+    <div id="login" class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">💰</div>
+                <h1>FinançasJá</h1>
+                <p>Painel Administrativo</p>
+            </div>
+            <div class="login-body">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input id="emailLogin" type="email" placeholder="seu@email.com">
+                </div>
+                <div class="input-group">
+                    <label>Senha</label>
+                    <input id="senhaLogin" type="password" placeholder="••••••••">
+                </div>
+                <button id="btnEntrar">Entrar no Painel</button>
+                <p id="msgErro" class="erro"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="painel" class="container hidden">
+        <div class="flex">
+            <h1>Painel Admin</h1>
+            <div>
+                <span id="nomeAdmin" style="margin-right: 16px;"></span>
+                <button id="btnSair" class="ghost">Sair</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card" onclick="filtrarPorTipo('vendedor')">
+                <span style="color:#a3a3a3; font-size:14px;">Vendedores</span>
+                <strong id="totalVendedores">0</strong>
+            </div>
+            <div class="stat-card" onclick="filtrarPorTipo('revenda')">
+                <span style="color:#a3a3a3; font-size:14px;">Clientes Revenda</span>
+                <strong id="totalRevenda">0</strong>
+            </div>
+            <div class="stat-card" onclick="filtrarPorTipo('final')">
+                <span style="color:#a3a3a3; font-size:14px;">Clientes Final</span>
+                <strong id="totalFinal">0</strong>
+            </div>
+            <div class="stat-card">
+                <span style="color:#a3a3a3; font-size:14px;">Faturamento</span>
+                <strong id="totalFaturamento">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <div class="main-tabs">
+            <div class="main-tab active" onclick="mudarAbaPrincipal('vendedor', this)">Cadastro Vendedor</div>
+            <div class="main-tab" onclick="mudarAbaPrincipal('licenca', this)">Criar Licença</div>
+            <div class="main-tab" onclick="mudarAbaPrincipal('lista', this)">Licenças Cadastradas</div>
+        </div>
+
+        <div id="abaVendedor" class="card">
+            <h2>Cadastro de Vendedor</h2>
+            <p style="color:#a3a3a3; font-size:14px; margin-bottom:16px;">Você cria o login completo do vendedor aqui</p>
+            <input id="nomeVendedor" placeholder="Nome completo">
+            <input id="emailVendedor" type="email" placeholder="Email de login">
+            <input id="senhaVendedor" type="text" placeholder="Senha que ele vai usar">
+            <input id="telefoneVendedor" placeholder="Telefone/WhatsApp: 11999999999">
+            <input id="bairroVendedor" placeholder="Bairro/Cidade">
+            <input id="segmentoVendedor" placeholder="Segmento: Ex: Contabilidade, Consultoria">
+            <input id="valorVendedor" type="number" step="0.01" placeholder="Valor da licença mensal: 49.99">
+            <button id="btnCriarVendedor">Criar Vendedor</button>
+            <p id="msgVendedor" class="success-msg"></p>
+        </div>
+
+        <div id="abaLicenca" class="card hidden">
+            <h2>Criar Licença de Cliente</h2>
+            <p style="color:#a3a3a3; font-size:14px; margin-bottom:16px;">Licenças para seus clientes diretos</p>
+            <input id="nomeCliente" placeholder="Nome completo do cliente">
+            <input id="emailCliente" type="email" placeholder="Email do cliente">
+            <input id="whatsappCliente" placeholder="WhatsApp: 11999999999">
+            <input id="valorCliente" type="number" step="0.01" placeholder="Valor da licença mensal">
+            <label style="display:block; font-size:13px; color:#a3a3a3; margin-bottom:6px;">Tipo de Cliente</label>
+            <select id="tipoCliente">
+                <option value="final">Cliente Final</option>
+                <option value="revenda">Cliente Revenda</option>
+            </select>
+            <button id="btnCriarCliente">Gerar Licença</button>
+            <p id="msgCliente" class="success-msg"></p>
+        </div>
+
+        <div id="abaLista" class="card hidden">
+            <div class="tabs">
+                <div class="tab active" onclick="mudarFiltro('todos', this)">Todos</div>
+                <div class="tab" onclick="mudarFiltro('vendedor', this)">Vendedores</div>
+                <div class="tab" onclick="mudarFiltro('revenda', this)">Revenda</div>
+                <div class="tab" onclick="mudarFiltro('final', this)">Final</div>
+            </div>
+            <h2 id="tituloLista">Licenças Cadastradas</h2>
+            <div id="listaLicencas">Carregando...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, query, where, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // REMOVIDO: const ADMIN_UID = "vyTKscTkFEgiPYDTAqjK26LVBGb2";
+        let ABA_PRINCIPAL = 'vendedor';
+        let FILTRO_ATIVO = 'todos';
+        let TODAS_LICENCAS = [];
+        let unsubLicencas = null;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8P18F9CavEayeRs5fbrqpIblkpRTJY9o",
+            authDomain: "financas-ja-6a685.firebaseapp.com",
+            projectId: "financas-ja-6a685",
+            storageBucket: "financas-ja-6a685.firebasestorage.app",
+            messagingSenderId: "267964462484",
+            appId: "1:267964462484:web:670970b2d9f15fb24b8b81"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const loginDiv = document.getElementById("login");
+        const painelDiv = document.getElementById("painel");
+        const msgErro = document.getElementById("msgErro");
+        const btnEntrar = document.getElementById("btnEntrar");
+        const btnSair = document.getElementById("btnSair");
+        const btnCriarVendedor = document.getElementById("btnCriarVendedor");
+        const btnCriarCliente = document.getElementById("btnCriarCliente");
+
+        btnEntrar.onclick = async () => {
+            const email = document.getElementById("emailLogin").value.trim();
+            const senha = document.getElementById("senhaLogin").value;
+            msgErro.innerText = "";
+            if (!email ||!senha) { msgErro.innerText = "Preencha email e senha"; return; }
+            btnEntrar.innerText = "Entrando...";
+            btnEntrar.disabled = true;
+            try {
+                await signInWithEmailAndPassword(auth, email, senha);
+            } catch (error) {
+                console.error('Erro login:', error);
+                msgErro.innerText = "Email ou senha inválidos: " + error.code;
+                btnEntrar.innerText = "Entrar no Painel";
+                btnEntrar.disabled = false;
+            }
+        };
+
+        document.getElementById("senhaLogin").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") btnEntrar.click();
+        });
+
+        btnSair.onclick = () => {
+            if (unsubLicencas) unsubLicencas();
+            signOut(auth);
+        };
+
+        // MUDANÇA PRINCIPAL: VERIFICAÇÃO POR CLAIMS
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log('UID LOGADO:', user.uid);
+
+                // Pega o token e checa o claim 'admin'
+                user.getIdTokenResult(true).then((idTokenResult) => {
+                    console.log('Claims:', idTokenResult.claims);
+
+                    if (idTokenResult.claims.admin === true) {
+                        console.log('✅ É admin');
+                        loginDiv.classList.add("hidden");
+                        painelDiv.classList.remove("hidden");
+                        document.body.style.display = "block";
+                        document.getElementById("nomeAdmin").innerText = user.email;
+                        carregarLicencas();
+                    } else {
+                        console.log('❌ Não é admin');
+                        msgErro.innerText = "Acesso negado. Você não é administrador.";
+                        signOut(auth);
+                    }
+                }).catch((error) => {
+                    console.error("Erro ao pegar token:", error);
+                    msgErro.innerText = "Erro ao verificar permissão.";
+                    signOut(auth);
+                });
+
+            } else {
+                console.log("Ninguém logado");
+                loginDiv.classList.remove("hidden");
+                painelDiv.classList.add("hidden");
+                document.body.style.display = "flex";
+                btnEntrar.innerText = "Entrar no Painel";
+                btnEntrar.disabled = false;
+                if (unsubLicencas) unsubLicencas();
+            }
+        });
+
+        window.mudarAbaPrincipal = (aba, el) => {
+            ABA_PRINCIPAL = aba;
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('abaVendedor').classList.add('hidden');
+            document.getElementById('abaLicenca').classList.add('hidden');
+            document.getElementById('abaLista').classList.add('hidden');
+            document.getElementById('aba' + aba.charAt(0).toUpperCase() + aba.slice(1)).classList.remove('hidden');
+        };
+
+        window.filtrarPorTipo = (tipo) => {
+            mudarAbaPrincipal('lista', document.querySelectorAll('.main-tab')[2]);
+            setTimeout(() => mudarFiltro(tipo, document.querySelector(`.tab[onclick*="${tipo}"]`)), 100);
+        };
+
+        btnCriarVendedor.onclick = async () => {
+            const nome = document.getElementById("nomeVendedor").value.trim();
+            const email = document.getElementById("emailVendedor").value.trim().toLowerCase();
+            const senha = document.getElementById("senhaVendedor").value.trim();
+            const telefone = document.getElementById("telefoneVendedor").value.replace(/\D/g, '');
+            const bairro = document.getElementById("bairroVendedor").value.trim();
+            const segmento = document.getElementById("segmentoVendedor").value.trim();
+            const valor = parseFloat(document.getElementById("valorVendedor").value) || 49.99;
+
+            if (!nome ||!email ||!senha ||!telefone) { alert("Preenche nome, email, senha e telefone"); return; }
+            if (senha.length < 6) { alert("Senha deve ter no mínimo 6 caracteres"); return; }
+
+            const msgVendedor = document.getElementById("msgVendedor");
+            msgVendedor.innerText = "Criando vendedor...";
+            btnCriarVendedor.disabled = true;
+
+            try {
+                const tempApp = initializeApp(firebaseConfig, 'temp-' + Date.now());
+                const tempAuth = getAuth(tempApp);
+
+                const userCred = await createUserWithEmailAndPassword(tempAuth, email, senha);
+                const vendedorUID = userCred.user.uid;
+
+                await signOut(tempAuth);
+                await deleteApp(tempApp);
+
+                const chave = 'FJ-V-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                await setDoc(doc(db, 'licencas', vendedorUID), {
+                    chave, nome, email, telefone, bairro, segmento,
+                    tipo: 'vendedor',
+                    ativa: true,
+                    valor: valor,
+                    transferivel: false,
+                    criadaEm: Date.now(),
+                    vendedorUID: vendedorUID
+                });
+
+                msgVendedor.innerHTML = `Vendedor criado!<br><strong>Chave: ${chave}</strong><br>Email: ${email}<br>Senha: ${senha}<br>Valor: R$ ${valor.toFixed(2)}`;
+                document.getElementById("nomeVendedor").value = "";
+                document.getElementById("emailVendedor").value = "";
+                document.getElementById("senhaVendedor").value = "";
+                document.getElementById("telefoneVendedor").value = "";
+                document.getElementById("bairroVendedor").value = "";
+                document.getElementById("segmentoVendedor").value = "";
+                document.getElementById("valorVendedor").value = "";
+            } catch (error) {
+                console.error('Erro criar vendedor:', error);
+                msgVendedor.innerText = error.code === 'auth/email-already-in-use'? "Este email já está em uso" : "Erro: " + error.message;
+            } finally {
+                btnCriarVendedor.disabled = false;
+            }
+        };
+
+        btnCriarCliente.onclick = async () => {
+            const nome = document.getElementById("nomeCliente").value.trim();
+            const email = document.getElementById("emailCliente").value.trim().toLowerCase();
+            const whatsapp = document.getElementById("whatsappCliente").value.replace(/\D/g, '');
+            const valor = parseFloat(document.getElementById("valorCliente").value) || 49.99;
+            const tipo = document.getElementById("tipoCliente").value;
+
+            if (!nome ||!email ||!whatsapp) { alert("Preenche nome, email e WhatsApp"); return; }
+            if (valor <= 0) { alert("Valor da licença inválido"); return; }
+
+            const check = query(collection(db, 'licencas'), where('email', '==', email));
+            const checkSnap = await getDocs(check);
+            if (!checkSnap.empty) { alert("Este email já possui licença"); return; }
+
+            const chave = 'FJ-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+            await addDoc(collection(db, 'licencas'), {
+                chave, nome, email, whatsapp,
+                tipo: tipo,
+                ativa: true,
+                valor: valor,
+                transferivel: false,
+                criadaEm: Date.now(),
+                vendedorId: null,
+                vendedorUID: null
+            });
+
+            document.getElementById("msgCliente").innerHTML = `Licença ${tipo.toUpperCase()} criada!<br><strong>${chave}</strong><br>Valor: R$ ${valor.toFixed(2)}<br>Envie para: ${email}`;
+            document.getElementById("nomeCliente").value = "";
+            document.getElementById("emailCliente").value = "";
+            document.getElementById("whatsappCliente").value = "";
+            document.getElementById("valorCliente").value = "";
+        };
+
+        function carregarLicencas() {
+            if (unsubLicencas) unsubLicencas();
+            console.log('Carregando licenças...');
+            unsubLicencas = onSnapshot(collection(db, 'licencas'), (snap) => {
+                console.log('Snapshot recebido:', snap.size, 'docs');
+                TODAS_LICENCAS = [];
+                let totalVendedores = 0;
+                let totalRevenda = 0;
+                let totalFinal = 0;
+                let faturamento = 0;
+
+                snap.forEach((doc) => {
+                    const l = doc.data();
+                    l.id = doc.id;
+                    TODAS_LICENCAS.push(l);
+                    if (l.tipo === 'vendedor') totalVendedores++;
+                    if (l.tipo === 'revenda') totalRevenda++;
+                    if (l.tipo === 'final') totalFinal++;
+                    if (l.ativa) faturamento += l.valor || 0;
+                });
+
+                TODAS_LICENCAS.sort((a, b) => (b.criadaEm || 0) - (a.criadaEm || 0));
+
+                document.getElementById('totalVendedores').innerText = totalVendedores;
+                document.getElementById('totalRevenda').innerText = totalRevenda;
+                document.getElementById('totalFinal').innerText = totalFinal;
+                document.getElementById('totalFaturamento').innerText = `R$ ${faturamento.toFixed(2).replace('.', ',')}`;
+                renderizarLicencas();
+            }, (error) => {
+                console.error('ERRO FIRESTORE:', error.code, error.message);
+                alert('Erro ao carregar dados: ' + error.message);
+            });
+        }
+
+        window.mudarFiltro = (filtro, el) => {
+            FILTRO_ATIVO = filtro;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderizarLicencas();
+        };
+
+        function renderizarLicencas() {
+            const lista = document.getElementById('listaLicencas');
+            const titulo = document.getElementById('tituloLista');
+            const filtradas = FILTRO_ATIVO === 'todos'? TODAS_LICENCAS : TODAS_LICENCAS.filter(l => l.tipo === FILTRO_ATIVO);
+
+            titulo.innerText = FILTRO_ATIVO === 'todos'? 'Licenças Cadastradas' :
+                              FILTRO_ATIVO === 'vendedor'? 'Vendedores Cadastrados' :
+                              FILTRO_ATIVO === 'revenda'? 'Clientes Revenda' : 'Clientes Final';
+
+            if (filtradas.length === 0) {
+                lista.innerHTML = '<p style="color:#737373; text-align:center; padding:20px;">Nenhuma licença encontrada</p>';
+                return;
+            }
+            lista.innerHTML = filtradas.map(l => {
+                return `
+                <div class="item">
+                    <div class="item-header">
+                        <div>
+                            <strong>${l.chave}</strong>
+                            <span class="tag ${l.ativa? '' : 'inativa'}">${l.ativa? 'Ativa' : 'Inativa'}</span>
+                            <span class="tag ${l.tipo}">${l.tipo}</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button onclick="toggleLicenca('${l.id}', ${l.ativa})" class="${l.ativa? 'danger' : 'success'}" style="width:auto; padding:6px 12px; font-size:12px;">
+                                ${l.ativa? 'Desativar' : 'Ativar'}
+                            </button>
+                            <button onclick="deletarLicenca('${l.id}')" class="danger" style="width:auto; padding:6px 12px; font-size:12px;">Excluir</button>
+                        </div>
+                    </div>
+                    <div style="font-size:14px; color:#a3a3a3; line-height:1.6;">
+                        <div><strong>Nome:</strong> ${l.nome}</div>
+                        <div><strong>Email:</strong> ${l.email}</div>
+                        <div><strong>Telefone:</strong> ${l.telefone || l.whatsapp}</div>
+                        ${l.bairro? `<div><strong>Bairro:</strong> ${l.bairro}</div>` : ''}
+                        ${l.segmento? `<div><strong>Segmento:</strong> ${l.segmento}</div>` : ''}
+                        <div><strong>Valor:</strong> R$ ${(l.valor || 0).toFixed(2).replace('.', ',')}/mês</div>
+                        <div><strong>Criada em:</strong> ${l.criadaEm? new Date(l.criadaEm).toLocaleDateString('pt-BR') : '-'}</div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        window.toggleLicenca = async (id, ativa) => {
+            try {
+                await updateDoc(doc(db, 'licencas', id), { ativa:!ativa });
+            } catch(e) {
+                alert('Erro ao alterar: ' + e.message);
+            }
+        };
+
+        window.deletarLicenca = async (id) => {
+            if (confirm('Tem certeza? Isso é irreversível e vai apagar o login do vendedor também.')) {
+                try {
+                    await deleteDoc(doc(db, 'licencas', id));
+                } catch(e) {
+                    alert('Erro ao deletar: ' + e.message);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
